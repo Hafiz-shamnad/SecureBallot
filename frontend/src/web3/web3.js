@@ -1,23 +1,23 @@
 import Web3 from 'web3';
 import Voting from '../contracts/Voting.json'; // Adjust path as needed
 
-const providerUrl = 'http://localhost:7545'; // Ganache URL or your network URL
+const providerUrl = 'http://localhost:7545'; // Ensure this is correct
 const web3 = new Web3(new Web3.providers.HttpProvider(providerUrl));
 
-const contractAddress = Voting.networks['5777'].address; // Replace with actual network ID and contract address
-const votingContract = new web3.eth.Contract(Voting.abi, contractAddress);
-
-// Example function to call a contract method
-async function getVoteCount() {
+const getVotingContract = async () => {
   try {
-    const result = await votingContract.methods.getVoteCount().call();
-    console.log('Vote count:', result);
+    const networkId = await web3.eth.net.getId(); // Dynamically get the network ID
+    const contractAddress = Voting.networks[networkId]?.address; // Replace with actual network ID and contract address
+    if (!contractAddress) {
+      throw new Error(`Contract not deployed on network with ID ${networkId}`);
+    }
+    return new web3.eth.Contract(Voting.abi, contractAddress);
   } catch (error) {
-    console.error('Error calling contract method:', error);
+    console.error('Error getting contract:', error);
+    throw error; // Rethrow the error to handle it in the calling function
   }
-}
+};
 
-getVoteCount(); // Example function call
-
-export default web3;
+// Export the web3 instance and the function to get the contract instance
+export { web3, getVotingContract };
 

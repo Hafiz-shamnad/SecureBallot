@@ -1,27 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import web3 from './web3/web3';
-import voting from './contracts/voting';
+import { web3, getVotingContract } from './web3/web3';
 
 const App = () => {
   const [proposals, setProposals] = useState([]);
-  const [selectedProposal, setSelectedProposal] = useState('');
+  const [selectedProposal, setSelectedProposal] = useState(null);
   const [accounts, setAccounts] = useState([]);
+  const [votingContract, setVotingContract] = useState(null);
 
   useEffect(() => {
     const init = async () => {
-      const accounts = await web3.eth.getAccounts();
-      setAccounts(accounts);
+      try {
+        const accounts = await web3.eth.getAccounts();
+        setAccounts(accounts);
 
-      const proposals = await voting.methods.getProposals().call();
-      setProposals(proposals);
+        const votingInstance = await getVotingContract();
+        setVotingContract(votingInstance);
+
+        const proposals = await votingInstance.methods.getProposals().call();
+        setProposals(proposals);
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        alert('Failed to connect to the blockchain. Please make sure Ganache is running and try again.');
+      }
     };
 
     init();
   }, []);
 
   const handleVote = async () => {
-    await voting.methods.vote(selectedProposal).send({ from: accounts[0] });
-    alert('Vote cast successfully!');
+    if (selectedProposal !== null && votingContract) {
+      try {
+        await votingContract.methods.vote(selectedProposal).send({ from: accounts[0] });
+        alert('Vote cast successfully!');
+        // Refresh proposals after voting
+        const updatedProposals = await votingContract.methods.getProposals().call();
+        setProposals(updatedProposals);
+      } catch (error) {
+        console.error('Error voting:', error);
+        alert('Failed to cast vote. Please try again.');
+      }
+    }
   };
 
   return (
@@ -36,7 +54,7 @@ const App = () => {
           </li>
         ))}
       </ul>
-      <button onClick={handleVote} disabled={selectedProposal === ''}>
+      <button onClick={handleVote} disabled={selectedProposal === null}>
         Submit Vote
       </button>
     </div>
