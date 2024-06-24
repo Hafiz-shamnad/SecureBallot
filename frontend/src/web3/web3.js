@@ -7,7 +7,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(providerUrl));
 const getVotingContract = async () => {
   try {
     const networkId = await web3.eth.net.getId(); // Dynamically get the network ID
-    const contractAddress = Voting.networks[networkId]?.address; // Replace with actual network ID and contract address
+    const contractAddress = Voting.networks[networkId]?.address; // Get contract address from the network ID
     if (!contractAddress) {
       throw new Error(`Contract not deployed on network with ID ${networkId}`);
     }
@@ -20,4 +20,3 @@ const getVotingContract = async () => {
 
 // Export the web3 instance and the function to get the contract instance
 export { web3, getVotingContract };
-

@@ -11,12 +11,14 @@ const App = () => {
     const init = async () => {
       try {
         const accounts = await web3.eth.getAccounts();
+        console.log('Accounts:', accounts);
         setAccounts(accounts);
 
         const votingInstance = await getVotingContract();
         setVotingContract(votingInstance);
 
         const proposals = await votingInstance.methods.getProposals().call();
+        console.log('Proposals:', proposals);
         setProposals(proposals);
       } catch (error) {
         console.error('Error initializing app:', error);
